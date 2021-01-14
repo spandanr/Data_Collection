@@ -1,0 +1,54 @@
+ if (!(require(tesseract))) {install.packages("tesseract")};  library(tesseract)
+  if (!(require(Hmisc))) {install.packages("Hmisc")};  library(Hmisc)
+  if (!(require(xml2))) {install.packages("xml2")};  library(xml2)
+  if (!(require(stringr))) {install.packages("stringr")};  library(stringr)
+  if (!(require(tibble))) {install.packages("tibble")};  library(tibble)
+  if (!(require(pdftools))) {install.packages("pdftools")};  library(pdftools)
+  })
+  
+  
+  test.text = "./test-text.png"
+  
+  text <- ocr(test.text) 
+  varying.text = ocr("./varying-text.png")
+  
+  varying.text1 = string.break.line(varying.text)
+  
+  nutrition.text = "./the-nutritional-label.jpg" 
+  system.time({ nutrition.text = ocr("./the-nutritional-label.jpg") })
+  
+  library(Hmisc)   
+  nutrition.text1 = string.break.line(nutrition.text)
+  nutrition.text1
+  
+  xml = ocr("./test-text.png", HOCR = TRUE) })
+  
+ library(xml2)
+ library(stringr)
+ library(tibble)
+
+ doc <- read_xml(xml)   # note similarity with rvest::read_html()
+ 
+ # Examine 'doc' and ID nodes & attributes of interest to mine.
+ nodes <- xml_find_all(doc, ".//span[@class='ocrx_word']")    # using xpath instead of css selectors
+   words <- xml_text(nodes)    # analogous to rvest::html_text()
+   metatext <- xml_attr(nodes, 'title')  # ~ rvest::hml_attr()
+ 
+ # extract geom co-ords of 'bounding box' or bbox around ocr text
+ bbox <- str_replace(str_extract(metatext, "bbox [\\d ]+"), "bbox ", "")
+ 
+ # Recognition confidence metrics 
+ conf <- as.numeric(str_replace(str_extract(metatext, "x_wconf.*"), "x_wconf ", ""))
+ 
+ # build df now
+ tibble(confidence = conf, word = words, bbox = bbox)
+ 
+ library(pdftools)
+ system.time({
+  curl::curl_download("https://cran.r-project.org/doc/manuals/r-release/R-intro.pdf", "R-intro.pdf")
+  orig <- pdftools::pdf_text("R-intro.pdf")[1]  
+ }) 
+ 
+ img_file <- pdftools::pdf_convert("R-intro.pdf", format = 'tiff', pages = 1, dpi = 400)
+ 
+text <- ocr(img_file)
